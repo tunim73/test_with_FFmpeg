@@ -1,12 +1,6 @@
 <?php
 
-$imageDirectory = dirname(__FILE__) . '/../imgLondon';
-
-$files = glob($imageDirectory . '/*.jpg');
-
-$cmd = "ffmpeg \\";
-$filter_complex = "-filter_complex \" ";
-$config = "-map \"[out]\" output.mp4 -y";
+require_once 'config.php';
 
 
 foreach ($files as $index => $file) {
@@ -22,7 +16,7 @@ foreach ($files as $index => $file) {
 }
 
 $cmd .= $filter_complex;
-$cmd .= $config;
+$cmd .= $finalConfig;
 
 
 exec($cmd);
