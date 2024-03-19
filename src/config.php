@@ -8,7 +8,16 @@ $fileName = 'output.mp4';
 
 
 
+/* Configurações do vídeo */
 
+$imageTime = 3;
+$quality = 'hd720';
+$outputFrameRate = 25;
+$zoomDuration = $outputFrameRate * $imageTime;
+$codec = "libx264";
+$format = "yuv420p";
+
+$finalConfig = "-pix_fmt $format -c:v $codec \-map \"[out]\" $fileName -y";
 
 
 
@@ -21,7 +30,7 @@ $files = glob($imageDirectory . '/*.jpg');
 
 // comandos estruturais do ffmpeg
 $cmd = "ffmpeg \\";
-$filter_complex = "-filter_complex \" ";
-$finalConfig = "-map \"[out]\" $fileName -y";
+$filter_complex = "-filter_complex \"";
+
 
 

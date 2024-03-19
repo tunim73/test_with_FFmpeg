@@ -1,27 +1,37 @@
 <?php
 
+$imageDuration = 2;
+$quality = 'hd720';
+$zoomDuration = 30 * $imageDuration;
 
-$cmd = "ffmpeg \\";
+$cmd = "ffmpeg \
+-loop 1 -t 1 -i ./imgLondon/london-01.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-02.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-03.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-04.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-05.jpg \\";
 
+$filter_complex = "-filter_complex \"";
+$filter_complex .= "[0:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v0]; \\
+";
+$filter_complex .= "[1:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v1]; \\\n";
+$filter_complex .= "[2:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v2]; \\
+";
+$filter_complex .= "[3:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v3]; \\\n";
+$filter_complex .= "[4:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration, fade=out:st=4:d=1 [v4]; \\\n";
+$filter_complex .= "[v0][v1][v2][v3][v4]concat=n=5:v=1:a=0,format=yuv420p[v]\" \\";
+$configFinal = "-pix_fmt yuv420p -c:v libx264 \
+-map \"[v]\"  londonComZoom.mp4 -y";
 
-for ($i = 1; $i <= 5; $i++) {
-  $cmd .= "-loop 1 -t 2 -i ./imgLondon/london-0$i.jpg \\";
-
-}
-
-
-$filter_complex = "-filter_complex";
-$filter_complex .= " \"[0][1][2][3][4] concat=n=5 [out]\" \\";
+$filter_complex .= $configFinal;
 $cmd .= $filter_complex;
-$cmd .= "-map \"[out]\" output.mp4 -y";
 
-
-$r = exec($cmd);
+exec($cmd);
 
 
 /* 
   comando tem que ficar encostado do \, e, assim deverá utilizar o contra-barra original em string \\
-  evitar de utilizar enter e/ou \n \t
+  evitar de utilizar enter e/ou \n \t, mas pelo visto só no comando principal do ffmpeg
 
   $cmd = "ffmpeg \\";
   $cmd .= "-loop 1 -t 2 -i ./imgLondon/london-01.jpg \\";
@@ -37,7 +47,38 @@ $r = exec($cmd);
 */
 
 
+/* 
+Ao usar filter_complex, entre a saída do filtro e o novo filtro, precisa do \\, pois não pode haver espaço, porém obrigatóriamente deve ter um 'enter' ou \n, \t não.
 
+
+$imageDuration = 2;
+$quality = 'hd720';
+$zoomDuration = 30 * $imageDuration;
+
+$cmd = "ffmpeg \
+-loop 1 -t 1 -i ./imgLondon/london-01.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-02.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-03.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-04.jpg \
+-loop 1 -t 1 -i ./imgLondon/london-05.jpg \\";
+
+$filter_complex = "-filter_complex \"";
+$filter_complex .= "[0:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v0]; \\
+";
+$filter_complex .= "[1:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v1]; \\\n";
+$filter_complex .= "[2:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v2]; \\
+";
+$filter_complex .= "[3:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration [v3]; \\\n";
+$filter_complex .= "[4:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageDuration, fade=out:st=4:d=1 [v4]; \\\n";
+$filter_complex .= "[v0][v1][v2][v3][v4]concat=n=5:v=1:a=0,format=yuv420p[v]\" \\";
+$configFinal = "-pix_fmt yuv420p -c:v libx264 \
+-map \"[v]\"  londonComZoom.mp4 -y";
+
+$filter_complex .= $configFinal;
+$cmd .= $filter_complex;
+
+
+*/
 
 
 
