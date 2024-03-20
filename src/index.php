@@ -2,28 +2,13 @@
 
 require_once 'config.php';
 
-/* 
-\"
-  [0:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality:x='iw/2-(iw/zoom/2)+50':y='ih/2-(ih/zoom/2)',trim=duration=$imageDuration [v0]; \
-  [1:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-50',trim=duration=$imageDuration [v1]; \
-  [2:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality:x='iw/2-(iw/zoom/2)+50':y='ih/2-(ih/zoom/2)',trim=duration=$imageDuration [v2]; \
-  [3:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality:x='iw/2-(iw/zoom/2)-50':y='ih/2-(ih/zoom/2)+50',trim=duration=$imageDuration [v3]; \
-  [4:v]zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality:x='iw/2-(iw/zoom/2)-100':y='ih/2-(ih/zoom/2)-100', fade=out:st=3:d=1,trim=duration=$imageDuration [v4]; \
-  [v0][v1] xfade=transition=slideup:duration=1:offset=4 [t1]; \
-  [t1][v2] xfade=transition=slideright:duration=1:offset=8 [t2]; \
-  [t2][v3] xfade=transition=slidedown:duration=1:offset=12 [t3]; \
-  [t3][v4] xfade=transition=slideleft:duration=1:offset=16[v] \
-  \" \
-  -pix_fmt yuv420p -c:v libx264 \
--map \"[v]\"  londonComZoomETransacao.mp4 -y";
-
-*/
 
 $zoomConfig = "zoompan=z='min(zoom+0.0010,1.5)':d=$zoomDuration:s=$quality,trim=duration=$imageTime";
-$allZoom = "";
 
+$allZoom = "";
 $allTransitions = "";
 
+//input de images + filter_compex de zoom e transitions
 foreach ($files as $index => $file) {
 
   //organiza inputs de imagens
@@ -33,7 +18,12 @@ foreach ($files as $index => $file) {
   $inputZoom = "[$index:v]";
   $outputZoom = "[v$index]";
 
-  $allZoom .= "$inputZoom$zoomConfig $outputZoom; \\\n";
+  if ($index === count($files) - 1) {
+    $stFadeOut = $imageTime - 2;
+    $allZoom .= "$inputZoom$zoomConfig,fade=out:st=$stFadeOut:d=1 $outputZoom; \\\n";
+  } else {
+    $allZoom .= "$inputZoom$zoomConfig $outputZoom; \\\n";
+  }
 
   //label de entrada e saída da transtion
   $indexMaisUm = $index + 1;
@@ -48,7 +38,7 @@ foreach ($files as $index => $file) {
     $inputTransition = "[t$index][v$indexMaisUm]";
     $outputTransition = "[out]";
   }
-  
+
   $offset = $imageTime * ($index + 1) - ($index + 1);
   $transitionConfig = "xfade=transition=slideup:duration=$transitionTime:offset=$offset";
 
@@ -57,12 +47,20 @@ foreach ($files as $index => $file) {
 
 
   // outputs do filtro
- /*  if ($index === count($files) - 1) {
-    
-  } */
+  /*  if ($index === count($files) - 1) {
+     
+   } */
 
 }
+
+$cmd .= "-i $audioDirectory \\";
 $filter_complex .= "$allZoom$allTransitions\" ";
+
+$positionInputAudio = count($files); // dessa forma o posicionamento do aúdio sempre irá vir após as imagens
+
+$afadeAudio = "-af \"afade=t=out:st=$stAfade:d=$durationAfade\" \\";
+$finalConfig = "$afadeAudio-pix_fmt $format -c:v $codec \-map \"[out]\" -map $positionInputAudio -shortest $fileName -y";
+
 $cmd .= $filter_complex;
 $cmd .= $finalConfig;
 
@@ -71,25 +69,16 @@ exec($cmd);
 
 
 /* 
-
-ffmpeg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-01.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-02.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-03.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-04.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-05.jpg \-filter_complex " [0][1][2][3][4] concat=n=5 [out] " \-map "[out]" output.mp4 -y
-
-
-
-ffmpeg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-01.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-02.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-03.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-04.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-05.jpg \-filter_complex "[0:v]zoompan=z='min(zoom+0.0010,1.5)':d=75:s=hd720,trim=duration=3 [v0]; \
-[1:v]zoompan=z='min(zoom+0.0010,1.5)':d=75:s=hd720,trim=duration=3 [v1]; \
-[2:v]zoompan=z='min(zoom+0.0010,1.5)':d=75:s=hd720,trim=duration=3 [v2]; \
-[3:v]zoompan=z='min(zoom+0.0010,1.5)':d=75:s=hd720,trim=duration=3 [v3]; \
-[4:v]zoompan=z='min(zoom+0.0010,1.5)':d=75:s=hd720,trim=duration=3 [v4]; \
-[v0][v1][v2][v3][v4] concat=n=5:v=1:a=0,format=yuv420p [out] " \-pix_fmt yuv420p -c:v libx264 \-map "[out]" output.mp4 -y
-
-
-ffmpeg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-03.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-04.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-05.jpg \-filter_complex "[0:v]zoompan=z='min(zoom+0.0010,1.5)':d=50:s=hd720,trim=duration=2 [v0]; \
-[1:v]zoompan=z='min(zoom+0.0010,1.5)':d=50:s=hd720,trim=duration=2 [v1]; \
-[2:v]zoompan=z='min(zoom+0.0010,1.5)':d=50:s=hd720,trim=duration=2 [v2]; \
-[v0][v1] xfade=transition=slideup:duration=0.5:offset=1 [t1]; \
-[t1][v2] xfade=transition=slideup:duration=0.5:offset=2 [out] \
-" -pix_fmt yuv420p -c:v libx264 \-map "[out]" output.mp4 -y
+ffmpeg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-01.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-02.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-03.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-04.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-05.jpg \-i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../audio/audio1.mp3 \-filter_complex "[0:v]zoompan=z='min(zoom+0.0010,1.5)':d=125:s=hd720,trim=duration=6 [v0]; \
+[1:v]zoompan=z='min(zoom+0.0010,1.5)':d=125:s=hd720,trim=duration=6 [v1]; \
+[2:v]zoompan=z='min(zoom+0.0010,1.5)':d=125:s=hd720,trim=duration=6 [v2]; \
+[3:v]zoompan=z='min(zoom+0.0010,1.5)':d=125:s=hd720,trim=duration=6 [v3]; \
+[4:v]zoompan=z='min(zoom+0.0010,1.5)':d=125:s=hd720,trim=duration=6,fade=out:st=4:d=1 [v4]; \
+[v0][v1] xfade=transition=slideup:duration=0.5:offset=5 [t1]; \
+[t1][v2] xfade=transition=slideup:duration=0.5:offset=10 [t2]; \
+[t2][v3] xfade=transition=slideup:duration=0.5:offset=15 [t3]; \
+[t3][v4] xfade=transition=slideup:duration=0.5:offset=20 [out] \
+" -af "afade=t=out:st=21:d=4" \-pix_fmt yuv420p -c:v libx264 \-map "[out]" -map 5 -shortest output.mp4 -y
 
 
 */
