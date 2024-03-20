@@ -10,10 +10,16 @@ $fileName = 'output.mp4';
 
 /* Configurações do vídeo */
 
-$imageTime = 3;
+$imageTime = 2;
 $quality = 'hd720';
 $outputFrameRate = 25;
 $zoomDuration = $outputFrameRate * $imageTime;
+
+$transitionTime = 0.5;
+
+
+
+
 $codec = "libx264";
 $format = "yuv420p";
 
