@@ -1,6 +1,12 @@
 <?php
 
-$imageTime = 3; // tempo de cada imagem
+$imageTime = 5; // tempo de cada imagem
+$videoTime = $imageTime * 5 + 1; //tempo teórico de cada imagem * qtd imagens + 1 (bug que não vou consertar agora, por que acho que ele vai ser necessário quando for colocar um layout de finalização)
+$imageTime++; //não retirar, o tempo de cada imagem é rebaixado em 1s por conta do offset
+
+$durationAfade = 4;
+$stAfade = $videoTime - $durationAfade - 1;
+
 $quality = 'hd720'; //qualidade da imagem
 $outputFrameRate = 25;
 $zoomDuration = $outputFrameRate * $imageTime; //25 é o padrão de frames por segundo, durante $imageTime segundos 
@@ -45,10 +51,12 @@ $cmd = "ffmpeg \
                   [drawbox] drawtext=fontfile=$fontFile:text=$text01:x=$positionText[x]:y=$positionText[y]:fontsize=$fontsize:fontcolor=$fontcolor:box=0[out]; \
                   [out][7] overlay=80:10 [out] \
                   \" \
-                  -pix_fmt yuv420p -c:v libx264 -r $outputFrameRate \
+                  -af \"afade=t=out:st=$stAfade:d=$durationAfade\" \
+                  -c:v libx264 -r $outputFrameRate \
 -map \"[out]\" -map 5 -shortest $fileName  -y";
 
 
+echo $cmd . "\n \n \n";
 $r = exec($cmd);
 
 
@@ -70,4 +78,10 @@ https://stackoverflow.com/questions/32859841/give-a-video-rounded-transparent-ed
 
 A primeira de opção é mais viável, mas para fazer daquele jeito, prefiro fazer os layouts num editor e anexar manualmente os layouts. Será mais fácil fazer assim, do que acrescentar outra lib ao projeto, ou adaptar essa função no stackoverflow para os layouts que preciso e vou precisar.
 
+*/
+
+
+/* 
+  A duração do afade deverá ser -1 segundo em relação a duração do afade, para poder escutar o fim do aúdio.
+  Caso não queira chegar no fim, pode alterar esta variável. Seria interessante, sincronizar o fade out do vídeo com o afade de saída do aúdio.
 */
