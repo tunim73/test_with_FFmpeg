@@ -83,6 +83,15 @@ ffmpeg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../i
 [4:v]zoompan=z='min(zoom+0.0010,1.5)':d=75:s=hd720,trim=duration=3 [v4]; \
 [v0][v1][v2][v3][v4] concat=n=5:v=1:a=0,format=yuv420p [out] " \-pix_fmt yuv420p -c:v libx264 \-map "[out]" output.mp4 -y
 
+
+ffmpeg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-03.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-04.jpg \-loop 1 -t 2 -i /home/antonio/work/imovelguide/test_with_ffmpeg/src/../imgLondon/london-05.jpg \-filter_complex "[0:v]zoompan=z='min(zoom+0.0010,1.5)':d=50:s=hd720,trim=duration=2 [v0]; \
+[1:v]zoompan=z='min(zoom+0.0010,1.5)':d=50:s=hd720,trim=duration=2 [v1]; \
+[2:v]zoompan=z='min(zoom+0.0010,1.5)':d=50:s=hd720,trim=duration=2 [v2]; \
+[v0][v1] xfade=transition=slideup:duration=0.5:offset=1 [t1]; \
+[t1][v2] xfade=transition=slideup:duration=0.5:offset=2 [out] \
+" -pix_fmt yuv420p -c:v libx264 \-map "[out]" output.mp4 -y
+
+
 */
 
 
